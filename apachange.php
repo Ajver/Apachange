@@ -51,6 +51,25 @@ else
   }
   else
   {
+    if(substr($path, -1) !== "/")
+    {
+      // End path with slash to ensure all directories are covered when updating access permisions
+      $path .= "/";
+    }
+    // Update access permision on the full path to the Apache root
+    // Fixes annoing 403 errors, which appears when apache
+    // doens't have access to the new root directory or some of it's parent directory
+    $path_offset = 0;
+    while ($path_offset !== FALSE && $path_offset < strlen($path))
+    {
+      $path_offset = strpos($path, "/", $path_offset);
+      $subpath = substr($path, 0, $path_offset + 1);
+      $path_offset++;  // Next time look for '/' starting from next character
+
+      echo "Updating access permisions for: ".$subpath."\n";
+      exec("sudo chmod +x ".$subpath);
+    }
+    
     $apache='//etc/apache2/sites-available/000-default.conf';
     $file=file_get_contents($apache);
     $pattern='/DocumentRoot/';
